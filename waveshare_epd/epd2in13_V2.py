@@ -36,6 +36,8 @@ import numpy as np
 EPD_WIDTH       = 122
 EPD_HEIGHT      = 250
 
+logger = logging.getLogger(__name__)
+
 class EPD:
     def __init__(self):
         self.reset_pin = epdconfig.RST_PIN
@@ -88,7 +90,7 @@ class EPD:
         epdconfig.digital_write(self.reset_pin, 1)
         epdconfig.delay_ms(200) 
         epdconfig.digital_write(self.reset_pin, 0)
-        epdconfig.delay_ms(10)
+        epdconfig.delay_ms(5)
         epdconfig.digital_write(self.reset_pin, 1)
         epdconfig.delay_ms(200)   
 
@@ -222,14 +224,14 @@ class EPD:
         pixels = image_monocolor.load()
         
         if(imwidth == self.width and imheight == self.height):
-            logging.debug("Vertical")
+            logger.debug("Vertical")
             for y in range(imheight):
                 for x in range(imwidth):                    
                     if pixels[x, y] == 0:
                         x = imwidth - x
                         buf[int(x / 8) + y * linewidth] &= ~(0x80 >> (x % 8))
         elif(imwidth == self.height and imheight == self.width):
-            logging.debug("Horizontal")
+            logger.debug("Horizontal")
             for y in range(imheight):
                 for x in range(imwidth):
                     newx = y
@@ -264,10 +266,10 @@ class EPD:
                 self.send_data(image[i + j * linewidth])   
                 
                 
-        # self.send_command(0x26)
-        # for j in range(0, self.height):
-            # for i in range(0, linewidth):
-                # self.send_data(~image[i + j * linewidth])  
+        self.send_command(0x26)
+        for j in range(0, self.height):
+            for i in range(0, linewidth):
+                self.send_data(~image[i + j * linewidth])  
         self.TurnOnDisplayPart()
 
     def displayPartBaseImage(self, image):
@@ -293,12 +295,18 @@ class EPD:
             linewidth = int(self.width/8)
         else:
             linewidth = int(self.width/8) + 1
-        # logging.debug(linewidth)
+        # logger.debug(linewidth)
         
         self.send_command(0x24)
         for j in range(0, self.height):
             for i in range(0, linewidth):
-                self.send_data(color)   
+                self.send_data(color)
+                
+        # self.send_command(0x26)
+        # for j in range(0, self.height):
+            # for i in range(0, linewidth):
+                # self.send_data(color)   
+                
         self.TurnOnDisplay()
 
     def sleep(self):
@@ -307,10 +315,8 @@ class EPD:
         # self.send_command(0x20)
 
         self.send_command(0x10) #enter deep sleep
-        self.send_data(0x01)
-        epdconfig.delay_ms(100)
-
-    def Dev_exit(self):
+        self.send_data(0x03)
+        epdconfig.delay_ms(2000)
         epdconfig.module_exit()
 
 ### END OF FILE ###
