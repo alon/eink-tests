@@ -7,22 +7,18 @@ libdir = "home/pi/src/lib/"   #os.path.join(os.path.dirname(os.path.dirname(os.p
 if os.path.exists(libdir):
     sys.path.append(libdir)
 
-from waveshare_epd import epd2in9
+from waveshare_epd import epd2in9_V2 as epdmod
 import time
 from PIL import Image,ImageDraw,ImageFont
 import traceback
 
-try:
-    epd = epd2in9.EPD()
-    epd.init(epd.lut_full_update)
-    epd.Clear(0xFF)
-    font24 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24)
-    font18 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18)
-    epd.init(epd.lut_partial_update)
-    mon_image = Image.new('1', (epd.height, epd.width), 255)
-    mon_draw = ImageDraw.Draw(mon_image)
-except:
-    print("Display Error")
+epd = epdmod.EPD()
+epd.init()
+epd.Clear(0xFF)
+font24 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24)
+font18 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18)
+mon_image = Image.new('1', (epd.height, epd.width), 255)
+mon_draw = ImageDraw.Draw(mon_image)
 
 time.sleep(1)
 
@@ -37,19 +33,13 @@ flow = str(flow)
 d_flow = str(d_flow)
 
 while i < 5000:
+    print(i)
     if refr > 3:
-        try:
-            epd = epd2in9.EPD()
-            epd.init(epd.lut_full_update)
-            epd.Clear(0xFF)
-            font24 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24)
-            font18 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18)
-            epd.init(epd.lut_partial_update)
-            mon_image = Image.new('1', (epd.height, epd.width), 255)
-            mon_draw = ImageDraw.Draw(mon_image)
-            refr = 0
-        except:
-            print("Regular Refresh Error")
+        font24 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24)
+        font18 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18)
+        mon_image = Image.new('1', (epd.height, epd.width), 255)
+        mon_draw = ImageDraw.Draw(mon_image)
+        refr = 0
 
 
     lineone = "Power: " + pwr_in + " W"
@@ -66,8 +56,10 @@ while i < 5000:
         mon_image.paste(newimage, (10,10))
         epd.display(epd.getbuffer(mon_image))
         time.sleep(2)
-    except:
-        print("loop error")
+    except KeyboardInterrupt:
+        break
+    except Exception as e:
+        print("loop error {}".format(repr(e)))
 
     pwr_in = int(pwr_in)
     pwr_in += 13
