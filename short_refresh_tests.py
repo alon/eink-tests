@@ -53,9 +53,10 @@ def main():
         mon_image.paste(newimage, (10, 10))
         print("pre display")
         pre = datetime.now()
-        epd.display(epd.getbuffer(mon_image))
-        print("+{:2.1f} secs: pre sleep".format((datetime.now() - pre).total_seconds()))
-        time.sleep(1)
+        buffer = epd.getbuffer(mon_image)
+        action, f = ('full', epd.display) if i == 0 else ('partial', epd.display_Partial)
+        f(buffer)
+        print("+{:2.1f} secs: {}".format((datetime.now() - pre).total_seconds(), action))
 
         # simulate some change to the text
         fault = 1 - fault
